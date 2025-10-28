@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.rappi.controllers.CarritoController"
+            stylesheets="@styles.css">
+
+    <top>
+        <HBox spacing="20" alignment="CENTER_LEFT"
+              style="-fx-background-color: #f8f9fa; -fx-padding: 15;">
+            <Button text="← Volver a Productos" onAction="#handleVolverALista"
+                    style="-fx-background-color: #6c757d; -fx-text-fill: white;"/>
+            <Label text="Mi Carrito de Compras"
+                   style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333;"/>
+        </HBox>
+    </top>
+
+    <center>
+        <VBox spacing="10" style="-fx-padding: 20;">
+            <Label text="Artículos en tu carrito:" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+
+            <ListView fx:id="itemsListView" VBox.vgrow="ALWAYS">
+                <placeholder>
+                    <Label text="Tu carrito está vacío"
+                           style="-fx-font-size: 16px; -fx-text-fill: #666; -fx-alignment: center;"/>
+                </placeholder>
+            </ListView>
+        </VBox>
+    </center>
+
+    <bottom>
+        <VBox spacing="15" style="-fx-background-color: white; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0; -fx-padding: 20;">
+            <HBox spacing="20" alignment="CENTER_RIGHT">
+                <Label fx:id="totalLabel"
+                       style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #ff6d00;"/>
+
+                <Button fx:id="pagarButton" text="🛒 Ir a Pagar"
+                        onAction="#handlePagar"
+                        style="-fx-background-color: #ff6d00; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 10 20;"/>
+            </HBox>
+
+            <Label text="* El botón de pagar no realiza ninguna acción según los requerimientos"
+                   style="-fx-font-size: 12px; -fx-text-fill: #666; -fx-alignment: center;"/>
+        </VBox>
+    </bottom>
+
+</BorderPane>

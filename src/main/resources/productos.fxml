@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Pagination?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane stylesheets="@styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.rappi.controllers.ProductosController">
+
+    <top>
+        <VBox spacing="15" style="-fx-background-color: #f8f9fa; -fx-padding: 15;">
+            <!-- Header -->
+            <HBox alignment="CENTER_LEFT" spacing="20">
+                <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #ff6d00;" text="Rappi " />
+                <Button fx:id="carritoButton" onAction="#handleIrAlCarrito" style="-fx-font-size: 14px; -fx-background-color: #28a745; -fx-text-fill: white;" text="🛒 Ver Carrito" />
+            </HBox>
+
+            <!-- Filtros -->
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <VBox spacing="5">
+                    <Label text="Filtrar por Nombre/Etiquetas:" />
+                    <TextField fx:id="filtroNombreField" onKeyReleased="#handleFiltrar" prefWidth="250" promptText="Buscar productos..." />
+                </VBox>
+
+                <VBox spacing="5">
+                    <Label text="Precio Mín:" />
+                    <TextField fx:id="filtroPrecioMinField" onKeyReleased="#handleFiltrar" prefWidth="100" promptText="0.00" />
+                </VBox>
+
+                <VBox spacing="5">
+                    <Label text="Precio Máx:" />
+                    <TextField fx:id="filtroPrecioMaxField" onKeyReleased="#handleFiltrar" prefWidth="100" promptText="999.99" />
+                </VBox>
+
+                <Button onAction="#handleLimpiarFiltros" style="-fx-background-color: #6c757d; -fx-text-fill: white;" text="Limpiar Filtros" VBox.vgrow="ALWAYS" />
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <VBox spacing="10">
+            <!-- Paginación -->
+            <Pagination fx:id="pagination" style="-fx-page-information-visible: false;" VBox.vgrow="NEVER" />
+
+            <!-- Grid de Productos -->
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+                <GridPane fx:id="productosGrid" hgap="15" style="-fx-padding: 15;" vgap="15">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="20" />
+                        <ColumnConstraints percentWidth="20" />
+                        <ColumnConstraints percentWidth="20" />
+                        <ColumnConstraints percentWidth="20" />
+                        <ColumnConstraints percentWidth="20" />
+                    </columnConstraints>
+                </GridPane>
+            </ScrollPane>
+        </VBox>
+    </center>
+
+    <!-- Dialog para añadir al carrito -->
+    <bottom>
+        <VBox fx:id="dialogContainer" managed="false" spacing="10" style="-fx-background-color: white; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0; -fx-padding: 15;" visible="false">
+            <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Añadir al Carrito" />
+
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <VBox spacing="5">
+                    <Label text="Producto:" />
+                    <Label fx:id="productoNombreLabel" style="-fx-font-weight: bold;" />
+                </VBox>
+
+                <VBox spacing="5">
+                    <Label text="Precio Unitario:" />
+                    <Label fx:id="precioUnitarioLabel" style="-fx-text-fill: #2e7d32; -fx-font-weight: bold;" />
+                </VBox>
+
+                <VBox spacing="5">
+                    <Label text="Cantidad:" />
+                    <HBox spacing="5">
+                        <Button onAction="#handleDecrementarCantidad" style="-fx-background-color: #dc3545; -fx-text-fill: white;" text="-" />
+                        <Spinner fx:id="cantidadSpinner" editable="true" prefWidth="80" />
+                        <Button onAction="#handleIncrementarCantidad" style="-fx-background-color: #28a745; -fx-text-fill: white;" text="+" />
+                    </HBox>
+                </VBox>
+
+                <VBox spacing="5">
+                    <Label text="Subtotal:" />
+                    <Label fx:id="subtotalLabel" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #ff6d00;" />
+                </VBox>
+
+                <Button fx:id="anadirCarritoButton" onAction="#handleAnadirAlCarrito" style="-fx-background-color: #ff6d00; -fx-text-fill: white; -fx-font-weight: bold;" text="Añadir al Carrito" HBox.hgrow="ALWAYS" />
+            </HBox>
+        </VBox>
+    </bottom>
+
+</BorderPane>

@@ -1,0 +1,82 @@
+.root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* Estilos para las tarjetas de producto */
+.producto-card {
+    -fx-background-color: white;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 1);
+    -fx-padding: 15;
+    -fx-alignment: center;
+}
+
+.producto-card:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 8, 0, 0, 2);
+    -fx-border-color: #ff6d00;
+}
+
+/* Estilos para textos */
+.precio {
+    -fx-font-weight: bold;
+    -fx-text-fill: #2e7d32;
+    -fx-font-size: 16px;
+}
+
+.unidad {
+    -fx-text-fill: #666;
+    -fx-font-size: 14px;
+}
+
+/* Notificación Toast */
+.toast {
+    -fx-background-color: #4caf50;
+    -fx-text-fill: white;
+    -fx-padding: 15 25;
+    -fx-background-radius: 25;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 3);
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+/* Botones */
+.button {
+    -fx-background-radius: 5;
+    -fx-cursor: hand;
+}
+
+.button:pressed {
+    -fx-translate-y: 1px;
+}
+
+/* ListView del carrito */
+.list-view {
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+}
+
+.list-cell {
+    -fx-padding: 15;
+    -fx-border-color: #f0f0f0;
+    -fx-border-width: 0 0 1 0;
+}
+
+.list-cell:filled:hover {
+    -fx-background-color: #f8f9fa;
+}
+
+.list-cell:empty {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+}
+
+/* Campos de texto */
+.text-field {
+    -fx-border-color: #ced4da;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 8 12;
+}
