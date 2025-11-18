@@ -38,6 +38,8 @@ dependencies {
     // 1. Spring Boot Core
     implementation("org.springframework.boot:spring-boot-starter")
 
+
+
     // 💡 NUEVO: Persistencia (JPA) para Productos y Carrito
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
