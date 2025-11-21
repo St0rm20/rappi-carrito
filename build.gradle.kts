@@ -56,9 +56,6 @@ dependencies {
 
     // Base de Datos
     runtimeOnly("com.mysql:mysql-connector-j")
-
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
-
     // Testing
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

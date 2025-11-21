@@ -1,82 +1,101 @@
+/* Fuente global */
 .root {
-    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-font-family: "Segoe UI", "Roboto", sans-serif;
+    -fx-background-color: #f4f4f4;
 }
 
-/* Estilos para las tarjetas de producto */
-.producto-card {
-    -fx-background-color: white;
-    -fx-border-color: #e0e0e0;
-    -fx-border-radius: 8;
+/* --- Botones --- */
+.button {
+    -fx-cursor: hand;
     -fx-background-radius: 8;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 1);
+    -fx-padding: 8 15;
+    -fx-font-weight: bold;
+}
+
+/* Botón Naranja (Acción Principal) */
+.button-primary, #anadirCarritoButton {
+    -fx-background-color: #ff6d00;
+    -fx-text-fill: white;
+}
+.button-primary:hover, #anadirCarritoButton:hover {
+    -fx-background-color: #e65100;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 1);
+}
+
+/* Botón Verde (Carrito/Positivo) */
+.button-success, #carritoButton {
+    -fx-background-color: #28a745;
+    -fx-text-fill: white;
+}
+.button-success:hover, #carritoButton:hover {
+    -fx-background-color: #218838;
+}
+
+/* Botón Gris (Limpiar/Cancelar) */
+.button-secondary {
+    -fx-background-color: #6c757d;
+    -fx-text-fill: white;
+}
+
+/* --- Campos de Texto --- */
+.text-field {
+    -fx-background-radius: 8;
+    -fx-border-color: #ced4da;
+    -fx-border-radius: 8;
+    -fx-background-color: white;
+    -fx-padding: 8;
+}
+.text-field:focused {
+    -fx-border-color: #ff6d00;
+    -fx-effect: dropshadow(three-pass-box, rgba(255, 109, 0, 0.2), 5, 0, 0, 0);
+}
+
+/* --- Tarjeta de Producto (Generada dinámicamente) --- */
+.product-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);
     -fx-padding: 15;
     -fx-alignment: center;
+    -fx-spacing: 8;
 }
-
-.producto-card:hover {
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 8, 0, 0, 2);
-    -fx-border-color: #ff6d00;
-}
-
-/* Estilos para textos */
-.precio {
-    -fx-font-weight: bold;
-    -fx-text-fill: #2e7d32;
-    -fx-font-size: 16px;
-}
-
-.unidad {
-    -fx-text-fill: #666;
-    -fx-font-size: 14px;
-}
-
-/* Notificación Toast */
-.toast {
-    -fx-background-color: #4caf50;
-    -fx-text-fill: white;
-    -fx-padding: 15 25;
-    -fx-background-radius: 25;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 3);
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
-}
-
-/* Botones */
-.button {
-    -fx-background-radius: 5;
+.product-card:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(255, 109, 0, 0.3), 15, 0, 0, 4);
     -fx-cursor: hand;
 }
 
-.button:pressed {
-    -fx-translate-y: 1px;
+/* Texto del precio en la tarjeta */
+.price-label {
+    -fx-text-fill: #28a745;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
 }
 
-/* ListView del carrito */
-.list-view {
-    -fx-border-color: #e0e0e0;
-    -fx-border-radius: 5;
-    -fx-background-radius: 5;
+/* Texto del nombre en la tarjeta */
+.product-name {
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-text-fill: #333;
 }
 
-.list-cell {
-    -fx-padding: 15;
-    -fx-border-color: #f0f0f0;
-    -fx-border-width: 0 0 1 0;
-}
-
-.list-cell:filled:hover {
-    -fx-background-color: #f8f9fa;
-}
-
-.list-cell:empty {
+/* --- Paginación --- */
+.pagination .pagination-control {
     -fx-background-color: transparent;
-    -fx-border-width: 0;
+}
+.pagination .toggle-button {
+    -fx-background-color: white;
+    -fx-border-color: #ddd;
+}
+.pagination .toggle-button:selected {
+    -fx-background-color: #ff6d00;
+    -fx-text-fill: white;
 }
 
-/* Campos de texto */
-.text-field {
-    -fx-border-color: #ced4da;
-    -fx-border-radius: 4;
-    -fx-background-radius: 4;
-    -fx-padding: 8 12;
+/* --- ScrollPane --- */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
 }

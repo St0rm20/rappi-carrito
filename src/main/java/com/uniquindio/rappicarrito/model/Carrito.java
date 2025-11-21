@@ -1,8 +1,9 @@
 package com.uniquindio.rappicarrito.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.List;
 
 @Entity(
         name = "carritos"
@@ -15,8 +16,12 @@ import lombok.*;
 @NoArgsConstructor
 public class Carrito {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Boolean estado;
 
+    @OneToMany(fetch = FetchType.LAZY)
+    private List<Producto> productos;
 
 }
