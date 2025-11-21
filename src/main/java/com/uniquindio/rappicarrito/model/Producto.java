@@ -34,6 +34,8 @@ public class Producto {
 
     private String imagenUrl;
 
+    private Integer unidadesDisponibles;
+
     @ElementCollection
     @CollectionTable(name = "etiquetas_productos",
             joinColumns = @JoinColumn(name = "producto_id"))
