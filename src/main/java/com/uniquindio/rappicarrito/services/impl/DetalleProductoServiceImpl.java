@@ -6,97 +6,99 @@ import com.uniquindio.rappicarrito.repository.DetalleProductoRepository;
 import com.uniquindio.rappicarrito.repository.ProductoRepository;
 import com.uniquindio.rappicarrito.services.def.DetalleProductoService;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+
 @Service
-@NoArgsConstructor
 @AllArgsConstructor
 public class DetalleProductoServiceImpl implements DetalleProductoService {
 
-    ProductoRepository productoRepository;
-    DetalleProductoRepository detalleProductoRepository;
+    private final ProductoRepository productoRepository;
+    private final DetalleProductoRepository detalleProductoRepository;
+
+
+    private DetalleProducto buscarDetalleProductoPorId(int idDetalleProducto) throws Exception {
+        // Asumiendo que detallleProductoRepository.findAll() devuelve todos los registros
+        return detalleProductoRepository.findAll().stream()
+                .filter(dp -> dp.getId() == idDetalleProducto)
+                .findFirst()
+                .orElseThrow(() -> new Exception("No se encontró el detalle de producto con ID: " + idDetalleProducto));
+    }
+
+    private Producto buscarProductoPorId(int idProducto) throws Exception {
+        // Asumiendo que productoRepository.findAll() devuelve todos los registros
+        return productoRepository.findAll().stream()
+                .filter(p -> p.getId() == idProducto)
+                .findFirst()
+                .orElseThrow(() -> new Exception("Producto no encontrado con ID: " + idProducto));
+    }
+
+    // --- IMPLEMENTACIÓN DE MÉTODOS PÚBLICOS ---
+
     @Override
     public void modificarCantidad(int cantidad, int idDetalleProducto, int idProducto) throws Exception {
-        List<DetalleProducto> detalleProductos = detalleProductoRepository.findAll();
-        DetalleProducto detalleProductoEncontrado = detalleProductos.stream()
-                .filter(p -> p.getId() == idDetalleProducto)
-                .findAny()
-                .orElse(null);
-        if (detalleProductoEncontrado == null) {
-            throw new Exception("No se encontro el detalle de producto");
-        }
-        if(validarDatos(cantidad, idProducto)){
+        // Se reutiliza la búsqueda
+        DetalleProducto detalleProductoEncontrado = buscarDetalleProductoPorId(idDetalleProducto);
+
+        if (validarDatos(cantidad, idProducto)) {
             detalleProductoEncontrado.setCantidad(cantidad);
         }
-        detalleProductoRepository.save(detalleProductoEncontrado);//Tiene el mismo id, se actualiza, no se crea otro registro
+        detalleProductoRepository.save(detalleProductoEncontrado);
     }
 
     @Override
     public double calcularSubTotal(int idDetalleProducto, int idProducto) throws Exception {
-        double subTotal = 0;
-        List<DetalleProducto> detalleProductos = detalleProductoRepository.findAll();
-        DetalleProducto detalleProductoEncontrado = detalleProductos.stream()
-                .filter(p -> p.getId() == idDetalleProducto)
-                .findAny()
-                .orElse(null);
-        List<Producto> productos = productoRepository.findAll();
-        Producto productoEncontrado = productos.stream()
-                .filter(p -> p.getId() == idProducto) // Se usa .filter() en lugar de findAny() con Predicate
-                .findAny()                             // .findAny() devuelve un Optional<Producto>
-                .orElse(null);                         // Se usa .orElse() para obtener el Producto o null si no se encuentra
-        if(productoEncontrado == null) {
-            throw new Exception("Product does not exist");
-        }
-        if(detalleProductoEncontrado == null) {
-            throw new Exception("Detalle producto does not exist");
-        }
-        subTotal = detalleProductoEncontrado.getCantidad()*productoEncontrado.getPrecio();
-        return subTotal;
+        // Se reutilizan las búsquedas
+        DetalleProducto detalleProductoEncontrado = buscarDetalleProductoPorId(idDetalleProducto);
+        Producto productoEncontrado = buscarProductoPorId(idProducto);
+
+        // La validación del producto se hace dentro de buscarProductoPorId
+        return detalleProductoEncontrado.getCantidad() * productoEncontrado.getPrecio();
     }
 
     @Override
     public void crearDetalleProducto(int idProducto, int cantidad) throws Exception {
-        if(validarDatos(cantidad,idProducto)) {
+        if (validarDatos(cantidad, idProducto)) {
             DetalleProducto detalleProducto = new DetalleProducto();
             detalleProducto.setCantidad(cantidad);
-            List<Producto> productos = productoRepository.findAll();
-            Producto productoEncontrado = productos.stream()
-                    .filter(p -> p.getId() == idProducto) // Se usa .filter() en lugar de findAny() con Predicate
-                    .findAny()                             // .findAny() devuelve un Optional<Producto>
-                    .orElse(null);
+
+            // Se reutiliza la búsqueda
+            Producto productoEncontrado = buscarProductoPorId(idProducto);
             detalleProducto.setProducto(productoEncontrado);
-        }else{
-            throw new Exception("Cannot create detalle producto");
+
+            detalleProductoRepository.save(detalleProducto); // Asegúrate de guardar el nuevo detalle
+        } else {
         }
     }
 
+    @Override
+    public DetalleProducto obtenerDetalleProducto(int idDetalleProducto) throws Exception {
+        // Se reutiliza la búsqueda
+        return buscarDetalleProductoPorId(idDetalleProducto);
+    }
+
     public boolean validarDatos(int cantidad, int idProducto) throws Exception {
+        // Se reutiliza la búsqueda
+        Producto productoEncontrado = buscarProductoPorId(idProducto);
 
-        boolean result = true;
+        // La validación de productoEncontrado == null ya no es necesaria,
+        // ya que buscarProductoPorId lanza la excepción.
+
         List<Producto> productos = productoRepository.findAll();
-        Producto productoEncontrado = productos.stream()
-                .filter(p -> p.getId() == idProducto) // Se usa .filter() en lugar de findAny() con Predicate
-                .findAny()                             // .findAny() devuelve un Optional<Producto>
-                .orElse(null);                         // Se usa .orElse() para obtener el Producto o null si no se encuentra
-        if(productoEncontrado == null) {
-            result = false;
-            throw new Exception("Product does not exist");
+
+        // Validación de stock:
+        if (productos.isEmpty()) {
+            throw new Exception("Parece que no hay productos disponibles.");
         }
-        if(productos.size()==0){
-            result = false;
-            throw new Exception("It seems like theres is no avaible products");
+        if (cantidad < 0) {
+            throw new Exception("No puedes agregar una cantidad negativa.");
         }
-        if(cantidad < 0){
-            result= false;
-            throw  new Exception("You cannot add a negativa amount");
+        if (cantidad > productoEncontrado.getCantidad()) {
+            throw new Exception("No hay suficiente producto en stock (Disponible: " + productoEncontrado.getCantidad() + ")");
         }
 
-        if(cantidad > productoEncontrado.getCantidad()){
-            result= false;
-            throw new Exception("There's no such product in stock");
-        }
-        return result;
+        return true;
     }
 }
