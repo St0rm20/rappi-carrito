@@ -25,7 +25,7 @@ public class RappiCarritoApplication extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         // Cargas el FXML directamente aquí
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/productos.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/productos.fxml"));
 
         // ESTA ES LA ÚNICA LÍNEA OBLIGATORIA:
         // Le dice a JavaFX: "Usa Spring para crear los controladores"

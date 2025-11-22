@@ -22,6 +22,6 @@ public class Carrito {
     private Boolean estado;
 
     @OneToMany(fetch = FetchType.LAZY)
-    private List<Producto> productos;
+    private List<DetalleProducto> productos;
 
 }

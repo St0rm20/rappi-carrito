@@ -36,6 +36,8 @@ public class Producto {
 
     private Integer unidadesDisponibles;
 
+    private Integer cantidad;
+
     @ElementCollection
     @CollectionTable(name = "etiquetas_productos",
             joinColumns = @JoinColumn(name = "producto_id"))
