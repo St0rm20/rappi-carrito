@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -52,7 +53,6 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     public void actualizarProducto(Producto producto) {
-        // save sirve para crear y actualizar en JPA
         productoRepository.save(producto);
     }
 
@@ -64,5 +64,13 @@ public class ProductoServiceImpl implements ProductoService {
             return producto.get();
         }
         return null;
+    }
+
+    @Override
+    public List<Producto> filtrarPorPrecio(float precioInicial, float precioFinal) {
+        return productoRepository.findAll()
+                .stream()
+                .filter(p -> p.getPrecio() >= precioInicial && p.getPrecio() <= precioFinal)
+                .collect(Collectors.toList());
     }
 }

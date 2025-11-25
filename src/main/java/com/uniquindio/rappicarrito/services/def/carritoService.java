@@ -16,4 +16,5 @@ public interface carritoService {
     Carrito obtenerCarrito(int idCarrito) throws Exception;
     void volverTienda()throws Exception;
     float calcularTotal(List<DetalleProducto> detalleProductos)throws Exception;
+    void anadirProductoAgain(int idDetalleProducto, int idCarrito)throws Exception;
 }

@@ -18,4 +18,6 @@ public interface ProductoService {
     void actualizarProducto(Producto producto);
 
     Producto obtenerPorNombre(String nombre);
+
+    List<Producto> filtrarPorPrecio(float precioInicial, float precioFinal);
 }
