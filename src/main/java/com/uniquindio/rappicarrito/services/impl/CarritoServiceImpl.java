@@ -100,9 +100,8 @@ public class CarritoServiceImpl implements carritoService {
 
     @Override
     public void anadirProductoAgain(int idProducto, int idCarrito) throws Exception {
-
         // Obtener carrito
-        Carrito carrito = carritoRepository.findById((long) idCarrito)
+        Carrito carrito = carritoRepository.findById( idCarrito)
                 .orElseThrow(() -> new Exception("Carrito no encontrado"));
 
         // Obtener producto a añadir
@@ -140,5 +139,6 @@ public class CarritoServiceImpl implements carritoService {
         detalleProductoRepository.save(nuevo);
         carritoRepository.save(carrito);
     }
+
 
 }
