@@ -55,4 +55,14 @@ public class ProductoServiceImpl implements ProductoService {
         // save sirve para crear y actualizar en JPA
         productoRepository.save(producto);
     }
+
+    @Override
+    public Producto obtenerPorNombre(String nombre) {
+
+        Optional<Producto> producto= productoRepository.findByNombre(nombre);
+        if (producto.isPresent()) {
+            return producto.get();
+        }
+        return null;
+    }
 }

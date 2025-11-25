@@ -73,4 +73,25 @@ public class CarritoServiceImpl implements carritoService {
         return buscarCarritoPorId(idCarrito);
     }
 
+
+    @Override
+    public void volverTienda()throws Exception {
+
+    }
+
+    @Override
+    public float calcularTotal(List<DetalleProducto> detalleProductos) throws Exception {
+
+        if (detalleProductos == null || detalleProductos.isEmpty()) {
+            throw new Exception("La lista de detalles está vacía");
+        }
+
+        double total = detalleProductos.stream()
+                .filter(d -> d != null)
+                .mapToDouble(DetalleProducto::getSubtotal)
+                .sum();
+
+        return (float) total;
+    }
+
 }

@@ -16,4 +16,6 @@ public interface ProductoService {
     void eliminarProducto(int id);
 
     void actualizarProducto(Producto producto);
+
+    Producto obtenerPorNombre(String nombre);
 }
