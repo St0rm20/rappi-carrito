@@ -1,161 +1,216 @@
 package com.uniquindio.rappicarrito.controller;
 
-
-import com.uniquindio.rappicarrito.model.Producto;
-import com.uniquindio.rappicarrito.services.def.ProductoService;
-import com.uniquindio.rappicarrito.services.impl.ProductoServiceImpl;
+import com.uniquindio.rappicarrito.services.adapter.ACarritoService;
+import com.uniquindio.rappicarrito.services.adapter.ADetalleProductoService;
+import com.uniquindio.rappicarrito.services.adapter.AProductoService;
+import com.uniquindio.rappicarrito.services.adapter.AUserService;
+import com.uniquindio.rappicarrito.view_model.CarritoViewModel;
+import com.uniquindio.rappicarrito.view_model.ProductosViewModel;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.layout.HBox;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import javafx.stage.Stage;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
-
 @Controller
 public class ProductosController implements Initializable {
 
-    // --- FXML Components ---
+    // --- Constantes de Regla de Negocio ---
+    private static final int ID_CARRITO = 1; // SIEMPRE usamos el carrito 1
+    private static final int ITEMS_PER_PAGE = 5;
+
+    // --- Componentes Tienda ---
     @FXML private Pagination pagination;
     @FXML private GridPane productosGrid;
+    @FXML private Button carritoButton;
+
+    // --- Filtros y Dirección ---
     @FXML private TextField filtroNombreField;
     @FXML private TextField filtroPrecioMinField;
     @FXML private TextField filtroPrecioMaxField;
+    @FXML private TextField direccionField;
 
-    // Dialog Components
-    @FXML private VBox dialogContainer;
-    @FXML private Label productoNombreLabel;
-    @FXML private Label precioUnitarioLabel;
-    @FXML private Label subtotalLabel;
+    // --- Componentes del Modal ---
+    @FXML private StackPane modalOverlay;
+    @FXML private ImageView modalImagen;
+    @FXML private Label modalIdLabel;
+    @FXML private Label modalNombre;
+    @FXML private Label modalDescripcion;
+    @FXML private Label modalPrecio;
+    @FXML private Label modalStock;
     @FXML private Spinner<Integer> cantidadSpinner;
-    @FXML private Button anadirCarritoButton;
+    @FXML private Label subtotalLabel;
 
-    private List<Producto> allProducts = new ArrayList<>(); // Todos los productos (simulando DB)
-    private List<Producto> filteredProducts = new ArrayList<>(); // Productos filtrados actualmente
-    private static final int ITEMS_PER_PAGE = 5;
-    private Producto productoSeleccionado;
-    private final ProductoService productoService;
+    // --- Datos ---
+    private List<ProductosViewModel> allProducts = new ArrayList<>();
+    private List<ProductosViewModel> filteredProducts = new ArrayList<>();
+    private ProductosViewModel productoSeleccionado;
 
-    public ProductosController(ProductoService productoService) {
-        this.productoService = productoService;
+    // --- Adapters (Servicios) ---
+    private final AProductoService productoAdapter;
+    private final ACarritoService carritoAdapter;
+    private final AUserService usuarioAdapter;
+    private final ADetalleProductoService detalleAdapter; // Para operaciones específicas de items
+
+    private final ApplicationContext springContext;
+
+    public ProductosController(AProductoService productoAdapter,
+                               ACarritoService carritoAdapter,
+                               AUserService usuarioAdapter,
+                               ADetalleProductoService detalleAdapter,
+                               ApplicationContext springContext) { // <--- Inyección aquí
+        this.productoAdapter = productoAdapter;
+        this.carritoAdapter = carritoAdapter;
+        this.usuarioAdapter = usuarioAdapter;
+        this.detalleAdapter = detalleAdapter;
+        this.springContext = springContext;
     }
-
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // 1. Cargar datos simulados
-        cargarDatosDummy();
+        // 1. Cargar productos y dirección
+        cargarDatos();
+        cargarDireccionUsuario();
 
-        // 2. Inicializar lista filtrada con todo
+        // 2. Cargar estado inicial del carrito #1
+        actualizarResumenCarrito();
+
+        // 3. Configurar filtros y UI
         filteredProducts.addAll(allProducts);
 
-        // 3. Configurar el Spinner del dialog
         SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 100, 1);
         cantidadSpinner.setValueFactory(valueFactory);
+        cantidadSpinner.valueProperty().addListener((obs, oldV, newV) -> actualizarSubtotal());
 
-        // Listener para actualizar subtotal cuando cambia el spinner
-        cantidadSpinner.valueProperty().addListener((obs, oldValue, newValue) -> actualizarSubtotal());
-
-        // 4. Configurar Paginación
         setupPagination();
     }
 
-    private void setupPagination() {
-        int pageCount = (int) Math.ceil((double) filteredProducts.size() / ITEMS_PER_PAGE);
-        pagination.setPageCount(pageCount > 0 ? pageCount : 1);
-        pagination.setCurrentPageIndex(0);
-        pagination.setMaxPageIndicatorCount(5);
-
-        // Usamos un listener en el índice de la página para repintar el Grid
-        pagination.currentPageIndexProperty().addListener((obs, oldIndex, newIndex) -> {
-            fillGrid(newIndex.intValue());
-        });
-
-        // Cargar la primera página
-        fillGrid(0);
+    private void cargarDatos() {
+        allProducts = productoAdapter.listarProductos();
     }
 
-    private void fillGrid(int pageIndex) {
-        productosGrid.getChildren().clear();
+    // ==========================================================
+    // 1. DIRECCIÓN (Usuario ID 1)
+    // ==========================================================
+    private void cargarDireccionUsuario() {
+        String dir = usuarioAdapter.obtenerDireccionActual();
+        if (dir != null) direccionField.setText(dir);
+    }
 
-        int fromIndex = pageIndex * ITEMS_PER_PAGE;
-        int toIndex = Math.min(fromIndex + ITEMS_PER_PAGE, filteredProducts.size());
+    @FXML
+    public void handleGuardarDireccion() {
+        String direccion = direccionField.getText();
+        if (direccion == null || direccion.trim().isEmpty()) {
+            mostrarAlerta(Alert.AlertType.WARNING, "Atención", "Ingresa una dirección válida.");
+            return;
+        }
+        try {
+            usuarioAdapter.guardarDireccion(direccion);
+            mostrarAlerta(Alert.AlertType.INFORMATION, "Éxito", "Dirección guardada.");
+        } catch (Exception e) {
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "Fallo al guardar dirección.");
+        }
+    }
 
-        if (fromIndex >= filteredProducts.size()) return;
+    // ==========================================================
+    // 2. CARRITO (Siempre ID 1)
+    // ==========================================================
 
-        List<Producto> pageItems = filteredProducts.subList(fromIndex, toIndex);
+    @FXML
+    public void handleAnadirAlCarrito() {
+        if (productoSeleccionado != null) {
+            int cantidad = cantidadSpinner.getValue();
 
-        int col = 0;
-        int row = 0;
+            try {
+                // Opción Rápida: Usamos un bucle porque tu servicio 'anadirProductoAgain' suma de 1 en 1
+                // Esto asegura que si el usuario pide 5, se sumen 5 al carrito #1.
+                for (int i = 0; i < cantidad; i++) {
+                    carritoAdapter.agregarProducto(productoSeleccionado.getId().intValue(), ID_CARRITO);
+                }
 
-        for (Producto prod : pageItems) {
-            VBox card = createProductCard(prod);
-            productosGrid.add(card, col, row);
+                actualizarResumenCarrito(); // Refrescar botón del header
+                cerrarModal();
+                mostrarAlerta(Alert.AlertType.INFORMATION, "Carrito",
+                        "Se añadieron " + cantidad + " unidad(es) al carrito.");
 
-            col++;
-            if (col == 5) { // 5 columnas como definiste en el FXML
-                col = 0;
-                row++;
+            } catch (Exception e) {
+                mostrarAlerta(Alert.AlertType.ERROR, "Error", "No se pudo añadir: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
 
-    // Método clave: Crea la "Tarjeta" visual del producto
-    private VBox createProductCard(Producto prod) {
-        VBox card = new VBox();
-        card.getStyleClass().add("product-card"); // Clase CSS definida arriba
-        card.setAlignment(Pos.CENTER);
-        card.setSpacing(10);
-        card.setPrefHeight(250);
-
-        // Imagen (Placeholder si es null)
-        ImageView imageView = new ImageView();
-        imageView.setFitHeight(100);
-        imageView.setFitWidth(100);
-        imageView.setPreserveRatio(true);
+    @FXML
+    public void handleVaciarCarrito() {
         try {
-            // Usa una imagen por defecto si la URL falla o es nula
-            String url = (prod.getImagenUrl() != null && !prod.getImagenUrl().isEmpty())
-                    ? prod.getImagenUrl()
-                    : "https://via.placeholder.com/150";
-            imageView.setImage(new Image(url, true));
+            carritoAdapter.vaciarCarrito(ID_CARRITO);
+            actualizarResumenCarrito();
+            mostrarAlerta(Alert.AlertType.INFORMATION, "Carrito", "Carrito vaciado correctamente.");
         } catch (Exception e) {
-            // Manejo de error de imagen
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", e.getMessage());
         }
-
-        // Nombre
-        Label nameLabel = new Label(prod.getNombre());
-        nameLabel.getStyleClass().add("product-name");
-        nameLabel.setWrapText(true);
-        nameLabel.setAlignment(Pos.CENTER);
-
-        // Precio
-        Label priceLabel = new Label("$ " + String.format("%.2f", prod.getPrecio()));
-        priceLabel.getStyleClass().add("price-label");
-
-        // Botón "Agregar" rápido
-        Button btnAdd = new Button("Agregar");
-        btnAdd.getStyleClass().add("button-primary");
-        btnAdd.setOnAction(e -> abrirDialogoProducto(prod));
-
-        card.getChildren().addAll(imageView, nameLabel, priceLabel, btnAdd);
-        return card;
     }
 
-    // --- Lógica de Filtrado ---
+    @FXML
+    public void handleIrAlCarrito() {
+        try {
+            // 1. Cargar el FXML
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/carrito.fxml"));
+
+            // 2. ¡CRUCIAL! Decirle a JavaFX que use Spring para crear el controlador.
+            // Esto permite que CarritoController reciba sus servicios (@Autowired o constructor)
+            loader.setControllerFactory(springContext::getBean);
+
+            Parent root = loader.load();
+
+            // 3. Obtener el Stage (ventana) actual usando el botón del carrito como referencia
+            Stage stage = (Stage) carritoButton.getScene().getWindow();
+
+            // 4. Cambiar la escena
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("Rappi Carrito - Tu Pedido"); // Opcional: Cambiar título
+            stage.centerOnScreen();
+            stage.show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            mostrarAlerta(Alert.AlertType.ERROR, "Error de Navegación", "No se pudo cargar la vista del carrito: " + e.getMessage());
+        }
+    }
+
+    private void actualizarResumenCarrito() {
+        // Obtenemos el Carrito #1 para pintar el botón del header
+        CarritoViewModel carritoVM = carritoAdapter.obtenerCarrito(ID_CARRITO);
+
+        if (carritoVM != null) {
+            carritoButton.setText("🛒 " + carritoVM.getTotalFormateado() + " (" + carritoVM.getCantidadTotalItems() + ")");
+        } else {
+            // Si el carrito no existe aún (null), mostramos vacío
+            carritoButton.setText("🛒 $ 0.00 (0)");
+        }
+    }
+
+    // ==========================================================
+    // 3. FILTROS Y PAGINACIÓN
+    // ==========================================================
 
     @FXML
     public void handleFiltrar() {
@@ -166,10 +221,10 @@ public class ProductosController implements Initializable {
         filteredProducts = allProducts.stream()
                 .filter(p -> p.getNombre().toLowerCase().contains(texto) ||
                         (p.getEtiquetas() != null && p.getEtiquetas().stream().anyMatch(t -> t.toLowerCase().contains(texto))))
-                .filter(p -> p.getPrecio() >= min && p.getPrecio() <= max)
+                .filter(p -> p.getPrecioValor() >= min && p.getPrecioValor() <= max)
                 .collect(Collectors.toList());
 
-        setupPagination(); // Recalcula páginas y vuelve a la página 0
+        setupPagination();
     }
 
     @FXML
@@ -180,86 +235,131 @@ public class ProductosController implements Initializable {
         handleFiltrar();
     }
 
-    // --- Lógica del Dialog (Carrito) ---
+    private void setupPagination() {
+        int pageCount = (int) Math.ceil((double) filteredProducts.size() / ITEMS_PER_PAGE);
+        pagination.setPageCount(pageCount > 0 ? pageCount : 1);
+        pagination.setCurrentPageIndex(0);
+        pagination.setMaxPageIndicatorCount(5);
 
-    private void abrirDialogoProducto(Producto prod) {
+        // Limpiamos listeners viejos para evitar duplicación
+        pagination.currentPageIndexProperty().removeListener((obs, oldIndex, newIndex) -> fillGrid(newIndex.intValue()));
+        pagination.currentPageIndexProperty().addListener((obs, oldIndex, newIndex) -> fillGrid(newIndex.intValue()));
+
+        fillGrid(0);
+    }
+
+    private void fillGrid(int pageIndex) {
+        productosGrid.getChildren().clear();
+        int fromIndex = pageIndex * ITEMS_PER_PAGE;
+        int toIndex = Math.min(fromIndex + ITEMS_PER_PAGE, filteredProducts.size());
+        if (fromIndex >= filteredProducts.size()) return;
+
+        List<ProductosViewModel> pageItems = filteredProducts.subList(fromIndex, toIndex);
+        int col = 0; int row = 0;
+
+        for (ProductosViewModel prod : pageItems) {
+            VBox card = createProductCard(prod);
+            productosGrid.add(card, col, row);
+            col++;
+            if (col == 5) { col = 0; row++; }
+        }
+    }
+
+    private VBox createProductCard(ProductosViewModel prod) {
+        VBox card = new VBox();
+        card.getStyleClass().add("product-card");
+        card.setAlignment(Pos.CENTER);
+        card.setSpacing(5);
+        card.setPrefHeight(260);
+        card.setStyle("-fx-cursor: hand;");
+        card.setOnMouseClicked(e -> abrirModalProducto(prod));
+
+        ImageView imageView = new ImageView();
+        imageView.setFitHeight(110);
+        imageView.setFitWidth(110);
+        imageView.setPreserveRatio(true);
+        try {
+            imageView.setImage(new Image(prod.getImagenUrl(), true));
+        } catch (Exception e) { /* Placeholder */ }
+
+        Label nameLabel = new Label(prod.getNombre());
+        nameLabel.getStyleClass().add("product-name");
+        nameLabel.setWrapText(true);
+        nameLabel.setAlignment(Pos.CENTER);
+
+        Label idLabel = new Label("ID: " + prod.getId());
+        idLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #999;");
+
+        Label priceLabel = new Label(prod.getPrecioFormateado());
+        priceLabel.getStyleClass().add("price-label");
+
+        Button btnVer = new Button("Ver");
+        btnVer.getStyleClass().add("button-primary");
+        btnVer.setOnAction(e -> abrirModalProducto(prod));
+
+        card.getChildren().addAll(imageView, nameLabel, idLabel, priceLabel, btnVer);
+        return card;
+    }
+
+    // ==========================================================
+    // 4. MODAL
+    // ==========================================================
+
+    private void abrirModalProducto(ProductosViewModel prod) {
         this.productoSeleccionado = prod;
-        dialogContainer.setVisible(true);
-        dialogContainer.setManaged(true);
 
-        productoNombreLabel.setText(prod.getNombre());
-        precioUnitarioLabel.setText("$ " + prod.getPrecio());
+        modalIdLabel.setText("ID Producto: " + prod.getId());
+        modalNombre.setText(prod.getNombre());
+        modalDescripcion.setText(prod.getDescripcion() != null ? prod.getDescripcion() : "Sin descripción.");
+        modalPrecio.setText(prod.getPrecioFormateado());
+        modalStock.setText(prod.getStock() != null ? prod.getStock().toString() : "0");
+
+        try {
+            modalImagen.setImage(new Image(prod.getImagenUrl(), true));
+        } catch (Exception e) { modalImagen.setImage(null); }
+
         cantidadSpinner.getValueFactory().setValue(1);
         actualizarSubtotal();
+        modalOverlay.setVisible(true);
     }
+
+    @FXML public void cerrarModal() { modalOverlay.setVisible(false); }
 
     private void actualizarSubtotal() {
         if (productoSeleccionado != null) {
             int cantidad = cantidadSpinner.getValue();
-            double subtotal = productoSeleccionado.getPrecio() * cantidad;
-            subtotalLabel.setText("$ " + String.format("%.2f", subtotal));
+            double subtotal = productoSeleccionado.getPrecioValor() * cantidad;
+            subtotalLabel.setText("Subtotal: $ " + String.format("%.2f", subtotal));
         }
     }
 
+    // Utilidades
+    private Double parseDoubleSafe(String value, Double defaultValue) {
+        try { return Double.parseDouble(value); } catch(Exception e) { return defaultValue; }
+    }
+
+    private void mostrarAlerta(Alert.AlertType tipo, String titulo, String mensaje) {
+        Alert alert = new Alert(tipo);
+        alert.setTitle(titulo);
+        alert.setHeaderText(null);
+        alert.setContentText(mensaje);
+        alert.showAndWait();
+    }
+
+    // ==========================================================
+    // MÉTODOS FALTANTES (Controles de UI)
+    // ==========================================================
+
     @FXML
     public void handleIncrementarCantidad() {
+        // Incrementa el valor del spinner en 1 paso
         cantidadSpinner.increment();
     }
 
     @FXML
     public void handleDecrementarCantidad() {
+        // Decrementa el valor del spinner en 1 paso
         cantidadSpinner.decrement();
     }
 
-    @FXML
-    public void handleAnadirAlCarrito() {
-        if (productoSeleccionado != null) {
-            System.out.println("Añadido al carrito: " + productoSeleccionado.getNombre() + " Cantidad: " + cantidadSpinner.getValue());
-
-            // Ocultar dialog
-            dialogContainer.setVisible(false);
-            dialogContainer.setManaged(false);
-
-            // Aquí agregarías la lógica para guardar en tu lista real de carrito
-
-            // Feedback visual simple
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Éxito");
-            alert.setHeaderText(null);
-            alert.setContentText("Producto añadido al carrito correctamente.");
-            alert.showAndWait();
-        }
-    }
-
-    @FXML
-    public void handleIrAlCarrito() {
-        System.out.println("Navegando al carrito...");
-    }
-
-    // --- Utilidades ---
-
-    private Double parseDoubleSafe(String value, Double defaultValue) {
-        try {
-            if (value == null || value.trim().isEmpty()) return defaultValue;
-            return Double.parseDouble(value);
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
-    }
-
-    private void cargarDatosDummy() {
-//        // Generar 50 productos de prueba
-//        for (int i = 1; i <= 50; i++) {
-//            Producto p = new Producto();
-//            p.setId((long) i);
-//            p.setNombre("Producto Rappi " + i);
-//            p.setPrecio(10000.0 + (i * 500));
-//            p.setDescripcion("Descripción del producto " + i);
-//            // p.setImagenUrl("url_real_aqui");
-//            p.setEstado(true);
-//            allProducts.add(p);
-//        }
-
-        allProducts = productoService.listarProductos();
-    }
 }

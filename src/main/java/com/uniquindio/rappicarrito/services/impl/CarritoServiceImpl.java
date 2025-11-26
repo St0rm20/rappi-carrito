@@ -6,9 +6,10 @@ import com.uniquindio.rappicarrito.model.Producto;
 import com.uniquindio.rappicarrito.repository.CarritoRepository;
 import com.uniquindio.rappicarrito.repository.DetalleProductoRepository;
 import com.uniquindio.rappicarrito.repository.ProductoRepository;
-import com.uniquindio.rappicarrito.services.def.carritoService;
+import com.uniquindio.rappicarrito.services.def.CarritoService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-public class CarritoServiceImpl implements carritoService {
+public class CarritoServiceImpl implements CarritoService {
 
     private final CarritoRepository carritoRepository;
     private final DetalleProductoRepository detalleProductoRepository;
@@ -52,6 +53,7 @@ public class CarritoServiceImpl implements carritoService {
     }
 
     @Override
+    @Transactional
     public void aniadirProducto(int idDetalleProducto, int idCarrito) throws Exception {
         // Se reutilizan las búsquedas
         Carrito carritoEncontrado = buscarCarritoPorId(idCarrito);
@@ -97,6 +99,7 @@ public class CarritoServiceImpl implements carritoService {
 
         return (float) total;
     }
+
 
     @Override
     public void anadirProductoAgain(int idProducto, int idCarrito) throws Exception {

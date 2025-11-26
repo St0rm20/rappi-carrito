@@ -38,7 +38,7 @@ public class Producto {
 
     private Integer cantidad;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "etiquetas_productos",
             joinColumns = @JoinColumn(name = "producto_id"))
     @Column(name = "etiqueta", length = 500)

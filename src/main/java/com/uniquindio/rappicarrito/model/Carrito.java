@@ -2,13 +2,9 @@ package com.uniquindio.rappicarrito.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.util.List;
 
-@Entity(
-        name = "carritos"
-)
-
+@Entity(name = "carritos")
 @Getter
 @Setter
 @EqualsAndHashCode
@@ -21,7 +17,8 @@ public class Carrito {
 
     private Boolean estado;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    // CAMBIO IMPORTANTE: FetchType.EAGER
+    // CascadeType.ALL ayuda a que si guardas el carrito, guarde los cambios en la lista
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<DetalleProducto> productos;
-
 }

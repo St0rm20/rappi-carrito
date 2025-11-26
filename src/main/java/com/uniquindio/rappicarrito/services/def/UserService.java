@@ -6,5 +6,5 @@ import com.uniquindio.rappicarrito.model.Usuario;
 import java.util.Optional;
 
 public interface UserService {
-    String registarDireccion(String nombre, String direccion);
+    String registarDireccion(String direccion);
 }
